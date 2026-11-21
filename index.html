@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Patungan Adil</title>
+<style>
+/* ============================================================
+   CONFIG: CSS CUSTOM PROPERTIES & RESET
+   ============================================================ */
+:root {
+  --bg:        #d4f0e8;        /* latar mint */
+  --paper:     #fdf8f0;        /* kertas krem */
+  --paper-alt: #f5ede0;
+  --border:    #c8b89a;
+  --accent:    #2563eb;        /* biru */
+  --accent-hl: #facc15;        /* kuning highlight */
+  --danger:    #dc2626;
+  --success:   #16a34a;
+  --text:      #1a1a1a;
+  --muted:     #6b5744;
+  --chip-bg:   #e8f4ff;
+  --chip-border:#93c5fd;
+  --radius:    8px;
+  --touch:     44px;
+  --mono:      "Courier New", Courier, monospace;
+  --sans:      ui-rounded, "Hiragino Maru Gothic ProN", "Nunito", system-ui, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  min-height: 100dvh;
+  background: var(--bg);
+  font-family: var(--sans);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px 48px;
+  gap: 0;
+}
+
+/* ============================================================
+   STRUK / RECEIPT CARD
+   ============================================================ */
+.receipt {
+  width: 100%;
+  max-width: 480px;
+  background: var(--paper);
+  border-radius: 2px 2px 0 0;
+  box-shadow: 0 4px 24px rgba(0,0,0,.13);
+  position: relative;
+}
+
+/* gigi atas */
+.receipt::before {
+  content: "";
+  display: block;
+  height: 14px;
+  background:
+    radial-gradient(circle at 7px 0, var(--bg) 7px, transparent 7px),
+    radial-gradient(circle at 7px 0, var(--bg) 7px, transparent 7px);
+  background-size: 14px 14px;
+  background-repeat: repeat-x;
+  background-position: 0 0, 7px 0;
+  border-top: 2px dashed var(--border);
+}
+
+/* gigi bawah */
+.receipt::after {
+  content: "";
+  display: block;
+  height: 14px;
+  background:
+    radial-gradient(circle at 7px 14px, var(--bg) 7px, transparent 7px),
+    radial-gradient(circle at 7px 14px, var(--bg) 7px, transparent 7px);
+  background-size: 14px 14px;
+  background-repeat: repeat-x;
+  background-position: 0 0, 7px 0;
+  border-bottom: 2px dashed var(--border);
+}
+
+.receipt-inner { padding: 16px 20px 20px; }
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+.receipt-title {
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  margin-bottom: 2px;
+}
+.receipt-subtitle {
+  text-align: center;
+  font-size: .78rem;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.section-title {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+  border-bottom: 1px dashed var(--border);
+  padding-bottom: 4px;
+}
+.mono { font-family: var(--mono); }
+
+/* ============================================================
+   SCENE VISIBILITY
+   ============================================================ */
+section[hidden] { display: none !important; }
+section { animation: fadeIn .18s ease; }
+@media (prefers-reduced-motion: reduce) {
+  section { animation-duration: .01s; }
+}
+@keyframes fadeIn { from { opacity: .4; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ============================================================
+   STEP INDICATOR
+   ============================================================ */
+.steps {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: .7rem;
+  color: var(--muted);
+  flex: 1;
+  position: relative;
+}
+.step::after {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: calc(50% + 14px);
+  right: calc(-50% + 14px);
+  height: 2px;
+  background: var(--border);
+}
+.step:last-child::after { display: none; }
+.step-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: .78rem;
+  background: var(--paper-alt);
+  border: 2px solid var(--border);
+  transition: background .18s, border-color .18s, color .18s;
+}
+.step.active .step-num  { background: var(--accent); border-color: var(--accent); color: #fff; }
+.step.done  .step-num  { background: var(--success); border-color: var(--success); color: #fff; }
+
+/* ============================================================
+   FORM ELEMENTS
+   ============================================================ */
+.input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+input[type="text"],
+input[type="number"] {
+  flex: 1;
+  min-width: 0;
+  height: var(--touch);
+  padding: 0 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  font-family: var(--sans);
+  font-size: .93rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s;
+}
+input[type="text"]:focus,
+input[type="number"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.18); }
+
+input[type="number"] { font-family: var(--mono); }
+
+label.inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .88rem;
+  min-height: var(--touch);
+  cursor: pointer;
+}
+input[type="checkbox"] {
+  width: 20px; height: 20px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch);
+  min-width: var(--touch);
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--sans);
+  font-size: .88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .12s, transform .08s;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(.97); }
+.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.btn-primary  { background: var(--accent); color: #fff; }
+.btn-success  { background: var(--success); color: #fff; }
+.btn-warning  { background: var(--accent-hl); color: #1a1a1a; }
+.btn-danger   { background: #fee2e2; color: var(--danger); }
+.btn-ghost    { background: var(--paper-alt); color: var(--text); border: 1.5px solid var(--border); }
+.btn-sm       { font-size: .78rem; min-height: 34px; padding: 0 10px; }
+.btn-block    { width: 100%; margin-bottom: 8px; }
+
+/* ============================================================
+   CHIPS
+   ============================================================ */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; min-height: 10px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--chip-bg);
+  border: 1.5px solid var(--chip-border);
+  border-radius: 20px;
+  padding: 4px 10px 4px 12px;
+  font-size: .84rem;
+  font-weight: 600;
+}
+.chip-del {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(220,38,38,.12); color: var(--danger);
+  border: none; cursor: pointer; font-size: .9rem; font-weight: 700;
+  line-height: 1;
+  transition: background .12s;
+}
+.chip-del:hover { background: rgba(220,38,38,.25); }
+.chip-del:focus-visible { outline: 2px solid var(--danger); }
+
+/* ============================================================
+   MENU LIST
+   ============================================================ */
+.menu-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.menu-item {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+.menu-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.menu-item-name { font-weight: 700; font-size: .9rem; }
+.menu-item-price { font-family: var(--mono); font-size: .88rem; color: var(--accent); font-weight: 700; white-space: nowrap; }
+.menu-item-who { font-size: .75rem; color: var(--muted); margin-top: 3px; }
+
+/* ============================================================
+   DIVIDER
+   ============================================================ */
+.divider {
+  border: none;
+  border-top: 2px dashed var(--border);
+  margin: 14px 0;
+}
+
+/* ============================================================
+   SUMMARY TABLE (scene 3)
+   ============================================================ */
+.summary-table { width: 100%; border-collapse: collapse; font-size: .88rem; margin-bottom: 4px; }
+.summary-table th {
+  font-size: .72rem; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--muted); padding: 4px 4px 6px; border-bottom: 1.5px solid var(--border); text-align: left;
+}
+.summary-table th:last-child,
+.summary-table td:last-child { text-align: right; }
+.summary-table td { padding: 5px 4px; border-bottom: 1px dashed var(--border); vertical-align: top; }
+.summary-table tr:last-child td { border-bottom: none; }
+.summary-table .row-name { font-weight: 600; }
+.summary-table .row-amount { font-family: var(--mono); font-weight: 700; }
+.total-row { background: var(--accent-hl); border-radius: 4px; }
+.total-row td { font-weight: 800; font-family: var(--mono); font-size: .95rem; padding: 7px 4px; }
+
+.grand-total-box {
+  background: var(--accent-hl);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.grand-total-label { font-weight: 700; font-size: .9rem; }
+.grand-total-amount { font-family: var(--mono); font-weight: 800; font-size: 1.1rem; }
+
+/* ============================================================
+   BREAKDOWN (per-person detail accordion)
+   ============================================================ */
+.breakdown-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.breakdown-item {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.breakdown-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px; cursor: pointer; gap: 8px;
+  user-select: none;
+}
+.breakdown-header:focus-visible { outline: 2px solid var(--accent); }
+.breakdown-name { font-weight: 700; }
+.breakdown-total { font-family: var(--mono); font-weight: 800; color: var(--accent); }
+.breakdown-detail {
+  padding: 0 12px;
+  font-size: .82rem;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height .22s ease, padding .22s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .breakdown-detail { transition-duration: .01s; }
+}
+.breakdown-detail.open { max-height: 400px; padding: 0 12px 10px; }
+.breakdown-line { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed var(--border); }
+.breakdown-line:last-child { border-bottom: none; }
+
+/* ============================================================
+   FEE INPUTS (scene 3)
+   ============================================================ */
+.fee-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;
+}
+.fee-label { font-size: .84rem; font-weight: 600; flex: 0 0 80px; }
+.fee-input-wrap { flex: 1; min-width: 100px; position: relative; }
+.fee-input-wrap input { width: 100%; }
+.fee-suffix {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  font-size: .78rem; color: var(--muted); pointer-events: none; font-family: var(--mono);
+}
+
+/* ============================================================
+   INLINE ERROR / STATUS
+   ============================================================ */
+.error-msg { color: var(--danger); font-size: .8rem; margin-top: 4px; min-height: 18px; }
+.status-msg { color: var(--success); font-size: .8rem; margin-top: 4px; min-height: 18px; }
+[aria-live] { min-height: 20px; }
+
+/* ============================================================
+   CHECKBOX GROUP (scene 2 — siapa ikut)
+   ============================================================ */
+.who-group {
+  display: flex; flex-wrap: wrap; gap: 4px 12px;
+  margin-top: 8px; padding: 8px 10px;
+  background: var(--paper-alt); border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+}
+.who-group-label { font-size: .78rem; color: var(--muted); font-weight: 600; width: 100%; margin-bottom: 2px; }
+
+/* ============================================================
+   SCENE 2 — menu add form
+   ============================================================ */
+.menu-add-form {
+  background: var(--paper-alt);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 14px 10px;
+  margin-bottom: 14px;
+}
+
+/* ============================================================
+   BOTTOM ACTIONS
+   ============================================================ */
+.actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+
+/* ============================================================
+   SCENE 3 — modifier section
+   ============================================================ */
+.modifiers {
+  background: var(--paper-alt);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     MARKUP: RECEIPT WRAPPER (semua scene ada di dalam .receipt)
+     ============================================================ -->
+<div class="receipt" role="main">
+  <div class="receipt-inner">
+
+    <!-- Header -->
+    <p class="receipt-title">🧾 Patungan Adil</p>
+    <p class="receipt-subtitle">Split Bill Tanpa Drama</p>
+
+    <!-- Step indicator -->
+    <div class="steps" role="list" aria-label="Langkah">
+      <div class="step active" id="step1" role="listitem">
+        <div class="step-num">1</div>
+        <span>Peserta</span>
+      </div>
+      <div class="step" id="step2" role="listitem">
+        <div class="step-num">2</div>
+        <span>Menu</span>
+      </div>
+      <div class="step" id="step3" role="listitem">
+        <div class="step-num">3</div>
+        <span>Hasil</span>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         SCENE 1 — PESERTA
+         ====================================================== -->
+    <section id="scene1" aria-labelledby="s1-title">
+      <p id="s1-title" class="section-title">Siapa yang ikut?</p>
+
+      <div class="input-row">
+        <input id="s1-name" type="text" placeholder="Nama peserta…" aria-label="Nama peserta" autocomplete="off" maxlength="40" />
+        <button class="btn btn-primary" id="s1-add" aria-label="Tambah peserta">Tambah</button>
+      </div>
+      <div id="s1-error" class="error-msg" role="alert" aria-live="assertive"></div>
+
+      <div id="s1-chips" class="chips" aria-label="Daftar peserta"></div>
+
+      <hr class="divider" />
+      <div class="actions">
+        <button class="btn btn-primary btn-block" id="s1-next">Lanjut ke Menu →</button>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         SCENE 2 — MENU
+         ====================================================== -->
+    <section id="scene2" hidden aria-labelledby="s2-title">
+      <p id="s2-title" class="section-title">Apa saja yang dipesan?</p>
+
+      <!-- Form tambah menu -->
+      <div class="menu-add-form">
+        <div class="input-row" style="margin-bottom:8px">
+          <input id="s2-mname" type="text" placeholder="Nama menu…" aria-label="Nama menu" maxlength="60" autocomplete="off" />
+        </div>
+        <div class="input-row" style="margin-bottom:8px">
+          <input id="s2-price" type="text" inputmode="numeric" placeholder="Harga (Rp)" aria-label="Harga menu" autocomplete="off" />
+        </div>
+
+        <!-- Siapa yang ikut -->
+        <div class="who-group" id="s2-who-group">
+          <span class="who-group-label">Siapa yang ikut makan ini?</span>
+          <!-- diisi JS -->
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-ghost btn-sm" id="s2-all" style="flex:1">✓ Pilih Semua</button>
+          <button class="btn btn-ghost btn-sm" id="s2-none" style="flex:1">✕ Batal Pilih</button>
+        </div>
+        <div id="s2-error" class="error-msg" role="alert" aria-live="assertive" style="margin-top:6px"></div>
+        <button class="btn btn-success btn-block" id="s2-add" style="margin-top:10px;margin-bottom:0">+ Tambah Menu</button>
+      </div>
+
+      <!-- Daftar menu -->
+      <ul id="s2-list" class="menu-list" aria-label="Daftar menu" aria-live="polite"></ul>
+
+      <hr class="divider" />
+      <div class="actions">
+        <button class="btn btn-primary btn-block" id="s2-next">Hitung Tagihan →</button>
+        <button class="btn btn-ghost btn-block" id="s2-back">← Kembali ke Peserta</button>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         SCENE 3 — HASIL
+         ====================================================== -->
+    <section id="scene3" hidden aria-labelledby="s3-title">
+      <p id="s3-title" class="section-title">Rincian Tagihan</p>
+
+      <!-- Modifier: service, pajak, diskon -->
+      <div class="modifiers">
+        <div class="fee-row">
+          <span class="fee-label">Service</span>
+          <div class="fee-input-wrap">
+            <input id="s3-service" type="number" min="0" max="100" step="0.1" aria-label="Service charge persen" />
+            <span class="fee-suffix">%</span>
+          </div>
+        </div>
+        <div class="fee-row">
+          <span class="fee-label">Pajak</span>
+          <div class="fee-input-wrap">
+            <input id="s3-tax" type="number" min="0" max="100" step="0.1" aria-label="Pajak persen" />
+            <span class="fee-suffix">%</span>
+          </div>
+        </div>
+        <div class="fee-row">
+          <span class="fee-label">Diskon</span>
+          <div class="fee-input-wrap">
+            <input id="s3-disc" type="number" min="0" step="1000" aria-label="Diskon rupiah" />
+            <span class="fee-suffix">Rp</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grand total box -->
+      <div class="grand-total-box" id="s3-total-box">
+        <span class="grand-total-label">Total Tagihan</span>
+        <span class="grand-total-amount mono" id="s3-total-amt">Rp 0</span>
+      </div>
+
+      <!-- Per-person summary table -->
+      <div id="s3-breakdown" class="breakdown-list" aria-live="polite"></div>
+
+      <!-- Detail table -->
+      <p class="section-title" style="margin-top:4px">Rincian Per Menu</p>
+      <table class="summary-table" id="s3-menu-table" aria-label="Rincian per menu">
+        <thead><tr><th>Menu</th><th>Peserta</th><th>Harga</th></tr></thead>
+        <tbody></tbody>
+      </table>
+
+      <hr class="divider" />
+
+      <!-- Status aria-live -->
+      <div id="s3-status" class="status-msg" role="status" aria-live="polite"></div>
+
+      <div class="actions">
+        <button class="btn btn-primary btn-block" id="s3-copy">📋 Salin Ringkasan</button>
+        <button class="btn btn-success btn-block" id="s3-wa">📱 Kirim via WhatsApp</button>
+        <button class="btn btn-ghost btn-block" id="s3-back">← Kembali ke Menu</button>
+        <button class="btn btn-danger btn-block" id="s3-restart">🔄 Mulai Ulang</button>
+      </div>
+    </section>
+
+  </div><!-- /receipt-inner -->
+</div><!-- /receipt -->
+
+<script>
+/* ============================================================
+   CONFIG — semua teks UI dan nilai default ada di sini
+   ============================================================ */
+const CONFIG = {
+  currency: "Rp",
+  defaults: {
+    service: 5,
+    tax:     10,
+    disc:    0,
+  },
+  demo: {
+    participants: ["Rani", "Dimas", "Sari"],
+    menus: [
+      { name: "Nasi goreng", price: 35000, who: ["Rani"] },
+      { name: "Mie ayam",    price: 28000, who: ["Dimas"] },
+      { name: "Es teh",      price: 8000,  who: ["Rani", "Dimas", "Sari"] },
+      { name: "Pizza keju",  price: 90000, who: ["Rani", "Dimas", "Sari"] },
+    ],
+    service: 5,
+    tax:     10,
+    disc:    0,
+  },
+  ui: {
+    errorEmpty:     "Nama tidak boleh kosong.",
+    errorDuplicate: "Nama sudah ada.",
+    errorMinPeople: "Minimal 2 peserta untuk lanjut.",
+    errorMenuName:  "Nama menu tidak boleh kosong.",
+    errorMenuPrice: "Harga harus lebih dari 0.",
+    errorMenuWho:   "Pilih minimal satu peserta.",
+    errorMinMenu:   "Tambahkan minimal 1 menu untuk lanjut.",
+    copiedOk:       "Ringkasan berhasil disalin! ✓",
+    copiedFail:     "Gagal menyalin. Silakan salin teks secara manual.",
+    menuRemoved:    (menus) => `Menu dihapus karena pesertanya tidak ada: ${menus.join(", ")}.`,
+  },
+};
+
+/* ============================================================
+   STATE — satu sumber kebenaran
+   ============================================================ */
+const state = {
+  participants: [],   // string[]
+  menus: [],          // { name, price, who: string[] }[]
+  service: CONFIG.defaults.service,
+  tax:     CONFIG.defaults.tax,
+  disc:    CONFIG.defaults.disc,
+};
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+/** Format angka ke "Rp 12.500" */
+function fmt(n) {
+  return CONFIG.currency + "\u00a0" + Math.round(n).toLocaleString("id-ID");
+}
+
+/** Bersihkan string angka dari titik/koma format */
+function parseRp(str) {
+  return parseInt(String(str).replace(/[^\d]/g, ""), 10) || 0;
+}
+
+/** Format input harga saat diketik (ribuan otomatis) */
+function formatPriceInput(el) {
+  const raw = parseRp(el.value);
+  el.value = raw > 0 ? raw.toLocaleString("id-ID") : "";
+}
+
+/* ============================================================
+   goToScene — SATU-SATUNYA cara berpindah scene
+   ============================================================ */
+function goToScene(n) {
+  try {
+    [1, 2, 3].forEach(i => {
+      const sec = document.getElementById("scene" + i);
+      const stp = document.getElementById("step"  + i);
+      if (i === n) {
+        sec.removeAttribute("hidden");
+        stp.classList.add("active");
+        stp.classList.remove("done");
+      } else {
+        sec.setAttribute("hidden", "");
+        stp.classList.remove("active");
+        if (i < n) stp.classList.add("done");
+        else        stp.classList.remove("done");
+      }
+    });
+
+    // init scene yang baru aktif
+    if (n === 1) initScene1();
+    if (n === 2) initScene2();
+    if (n === 3) initScene3();
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch(e) {
+    console.error("[goToScene] error:", e);
+  }
+}
+
+/* ============================================================
+   SCENE 1 — PESERTA
+   ============================================================ */
+function initScene1() {
+  try {
+    renderChips();
+    document.getElementById("s1-name").focus();
+    document.getElementById("s1-error").textContent = "";
+  } catch(e) { console.error("[initScene1]", e); }
+}
+
+function renderChips() {
+  try {
+    const container = document.getElementById("s1-chips");
+    container.textContent = "";
+    state.participants.forEach((name, i) => {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.setAttribute("role", "listitem");
+
+      const txt = document.createElement("span");
+      txt.textContent = name;
+
+      const del = document.createElement("button");
+      del.className = "chip-del";
+      del.setAttribute("aria-label", "Hapus " + name);
+      del.textContent = "×";
+      del.addEventListener("click", () => removeParticipant(i));
+
+      chip.appendChild(txt);
+      chip.appendChild(del);
+      container.appendChild(chip);
+    });
+  } catch(e) { console.error("[renderChips]", e); }
+}
+
+function addParticipant() {
+  try {
+    const inp  = document.getElementById("s1-name");
+    const err  = document.getElementById("s1-error");
+    const name = inp.value.trim();
+
+    if (!name) { err.textContent = CONFIG.ui.errorEmpty; inp.focus(); return; }
+    if (state.participants.map(p => p.toLowerCase()).includes(name.toLowerCase())) {
+      err.textContent = CONFIG.ui.errorDuplicate; inp.focus(); return;
+    }
+    state.participants.push(name);
+    inp.value = "";
+    err.textContent = "";
+    renderChips();
+    inp.focus();
+  } catch(e) { console.error("[addParticipant]", e); }
+}
+
+function removeParticipant(idx) {
+  try {
+    const removed = state.participants[idx];
+    state.participants.splice(idx, 1);
+
+    // hapus menu yang sudah tidak punya siapapun
+    const orphaned = [];
+    state.menus = state.menus.filter(m => {
+      m.who = m.who.filter(w => w !== removed);
+      if (m.who.length === 0) { orphaned.push(m.name); return false; }
+      return true;
+    });
+    if (orphaned.length > 0) {
+      document.getElementById("s1-error").textContent = CONFIG.ui.menuRemoved(orphaned);
+    } else {
+      document.getElementById("s1-error").textContent = "";
+    }
+    renderChips();
+  } catch(e) { console.error("[removeParticipant]", e); }
+}
+
+/* ============================================================
+   SCENE 2 — MENU
+   ============================================================ */
+function initScene2() {
+  try {
+    document.getElementById("s2-error").textContent = "";
+    renderWhoCheckboxes();
+    renderMenuList();
+    document.getElementById("s2-mname").focus();
+  } catch(e) { console.error("[initScene2]", e); }
+}
+
+function renderWhoCheckboxes() {
+  try {
+    const group = document.getElementById("s2-who-group");
+    // simpan label, bersihkan sisanya
+    while (group.children.length > 1) group.removeChild(group.lastChild);
+
+    state.participants.forEach(name => {
+      const lbl = document.createElement("label");
+      lbl.className = "inline";
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.value = name;
+      cb.setAttribute("aria-label", name);
+      cb.id = "who-" + name.replace(/\s+/g, "-");
+
+      const sp = document.createElement("span");
+      sp.textContent = name;
+
+      lbl.appendChild(cb);
+      lbl.appendChild(sp);
+      group.appendChild(lbl);
+    });
+  } catch(e) { console.error("[renderWhoCheckboxes]", e); }
+}
+
+function getCheckedWho() {
+  return Array.from(
+    document.querySelectorAll("#s2-who-group input[type=checkbox]:checked")
+  ).map(cb => cb.value);
+}
+
+function addMenu() {
+  try {
+    const nameEl  = document.getElementById("s2-mname");
+    const priceEl = document.getElementById("s2-price");
+    const err     = document.getElementById("s2-error");
+    const name    = nameEl.value.trim();
+    const price   = parseRp(priceEl.value);
+    const who     = getCheckedWho();
+
+    if (!name)        { err.textContent = CONFIG.ui.errorMenuName;  nameEl.focus();  return; }
+    if (price <= 0)   { err.textContent = CONFIG.ui.errorMenuPrice; priceEl.focus(); return; }
+    if (who.length < 1) { err.textContent = CONFIG.ui.errorMenuWho; return; }
+
+    state.menus.push({ name, price, who: [...who] });
+    nameEl.value  = "";
+    priceEl.value = "";
+    err.textContent = "";
+    // uncheck semua
+    document.querySelectorAll("#s2-who-group input[type=checkbox]")
+      .forEach(cb => { cb.checked = false; });
+    renderMenuList();
+    nameEl.focus();
+  } catch(e) { console.error("[addMenu]", e); }
+}
+
+function removeMenu(idx) {
+  try {
+    state.menus.splice(idx, 1);
+    renderMenuList();
+  } catch(e) { console.error("[removeMenu]", e); }
+}
+
+function renderMenuList() {
+  try {
+    const ul = document.getElementById("s2-list");
+    ul.textContent = "";
+    state.menus.forEach((m, i) => {
+      const li = document.createElement("li");
+      li.className = "menu-item";
+
+      const hdr = document.createElement("div");
+      hdr.className = "menu-item-header";
+
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "menu-item-name";
+      nameSpan.textContent = m.name;
+
+      const priceSpan = document.createElement("span");
+      priceSpan.className = "menu-item-price";
+      priceSpan.textContent = fmt(m.price);
+
+      const del = document.createElement("button");
+      del.className = "btn btn-danger btn-sm";
+      del.setAttribute("aria-label", "Hapus menu " + m.name);
+      del.textContent = "Hapus";
+      del.addEventListener("click", () => removeMenu(i));
+
+      hdr.appendChild(nameSpan);
+      hdr.appendChild(priceSpan);
+      hdr.appendChild(del);
+
+      const who = document.createElement("div");
+      who.className = "menu-item-who";
+      who.textContent = "👤 " + m.who.join(", ");
+
+      li.appendChild(hdr);
+      li.appendChild(who);
+      ul.appendChild(li);
+    });
+  } catch(e) { console.error("[renderMenuList]", e); }
+}
+
+/* ============================================================
+   SCENE 3 — HASIL & PERHITUNGAN
+   ============================================================ */
+function initScene3() {
+  try {
+    // set nilai default modifier
+    const svcEl  = document.getElementById("s3-service");
+    const taxEl  = document.getElementById("s3-tax");
+    const discEl = document.getElementById("s3-disc");
+
+    if (svcEl.value  === "") svcEl.value  = state.service;
+    if (taxEl.value  === "") taxEl.value  = state.tax;
+    if (discEl.value === "") discEl.value = state.disc;
+
+    document.getElementById("s3-status").textContent = "";
+    calculate();
+  } catch(e) { console.error("[initScene3]", e); }
+}
+
+/**
+ * PERHITUNGAN UTAMA
+ * Rumus:
+ *  1. subtotal_orang  = Σ (harga_menu / jumlah_orang_menu)  untuk menu yang dia ikut
+ *  2. subtotal_total  = Σ subtotal_orang
+ *  3. setelah_diskon  = max(subtotal_total - disc, 0)
+ *  4. service_total   = setelah_diskon * svc/100
+ *  5. pajak_total     = (setelah_diskon + service_total) * tax/100
+ *  6. grand_total     = setelah_diskon + service_total + pajak_total
+ *  7. biaya_tambahan_orang = proporsional (subtotal_orang / subtotal_total) * (service+pajak-diskon)
+ *  8. bagian_orang    = subtotal_orang + biaya_tambahan_orang
+ *  9. Pembulatan largest remainder ke rupiah bulat
+ */
+function calculate() {
+  try {
+    const svc  = parseFloat(document.getElementById("s3-service").value) || 0;
+    const tax  = parseFloat(document.getElementById("s3-tax").value)     || 0;
+    const disc = parseFloat(document.getElementById("s3-disc").value)    || 0;
+
+    // simpan ke state
+    state.service = svc;
+    state.tax     = tax;
+    state.disc    = disc;
+
+    const people = state.participants;
+    const n      = people.length;
+
+    // subtotal tiap orang (floating)
+    const subtotals = {};
+    people.forEach(p => { subtotals[p] = 0; });
+
+    state.menus.forEach(m => {
+      const share = m.price / m.who.length;
+      m.who.forEach(p => { subtotals[p] = (subtotals[p] || 0) + share; });
+    });
+
+    const subtotalTotal = Object.values(subtotals).reduce((a, b) => a + b, 0);
+    const afterDisc     = Math.max(subtotalTotal - disc, 0);
+    const svcAmt        = afterDisc * svc / 100;
+    const taxAmt        = (afterDisc + svcAmt) * tax / 100;
+    const grandTotal    = afterDisc + svcAmt + taxAmt;
+
+    // bagian tiap orang sebelum pembulatan
+    const rawShares = {};
+    people.forEach(p => {
+      let share = subtotals[p];
+      if (subtotalTotal > 0) {
+        const ratio = subtotals[p] / subtotalTotal;
+        // diskon dikurangkan proporsional, service & pajak ditambah proporsional
+        share = subtotals[p] - (disc * ratio) + (svcAmt * ratio) + (taxAmt * ratio);
+      }
+      rawShares[p] = Math.max(share, 0);
+    });
+
+    // Largest Remainder — pastikan total PERSIS sama
+    const floors   = {};
+    const remainders = [];
+    people.forEach(p => {
+      floors[p] = Math.floor(rawShares[p]);
+      remainders.push({ p, r: rawShares[p] - floors[p] });
+    });
+    const floorSum = Object.values(floors).reduce((a, b) => a + b, 0);
+    let leftover   = Math.round(grandTotal) - floorSum;
+    remainders.sort((a, b) => b.r - a.r);
+    remainders.forEach(item => {
+      if (leftover > 0) { floors[item.p] += 1; leftover--; }
+    });
+
+    const finalShares = floors; // integer rupiah
+
+    // render
+    renderResult(finalShares, grandTotal, svc, tax, disc, svcAmt, taxAmt, subtotals, subtotalTotal);
+  } catch(e) { console.error("[calculate]", e); }
+}
+
+function renderResult(shares, grandTotal, svc, tax, disc, svcAmt, taxAmt, subtotals, subtotalTotal) {
+  try {
+    const gtRounded = Math.round(grandTotal);
+
+    // grand total box
+    document.getElementById("s3-total-amt").textContent = fmt(gtRounded);
+
+    // breakdown per orang
+    const breakdownEl = document.getElementById("s3-breakdown");
+    breakdownEl.textContent = "";
+
+    state.participants.forEach(p => {
+      const item = document.createElement("div");
+      item.className = "breakdown-item";
+
+      const hdr = document.createElement("div");
+      hdr.className = "breakdown-header";
+      hdr.setAttribute("role", "button");
+      hdr.setAttribute("tabindex", "0");
+      hdr.setAttribute("aria-expanded", "false");
+      hdr.setAttribute("aria-label", p + " — " + fmt(shares[p]));
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "breakdown-name";
+      nameEl.textContent = p;
+
+      const totalEl = document.createElement("span");
+      totalEl.className = "breakdown-total";
+      totalEl.textContent = fmt(shares[p]);
+
+      hdr.appendChild(nameEl);
+      hdr.appendChild(totalEl);
+
+      const detail = document.createElement("div");
+      detail.className = "breakdown-detail";
+
+      // subtotal baris
+      const lines = [];
+      state.menus.forEach(m => {
+        if (m.who.includes(p)) {
+          lines.push({ label: m.name + " ÷" + m.who.length, val: m.price / m.who.length });
+        }
+      });
+
+      const sub = subtotals[p] || 0;
+      lines.push({ label: "Subtotal", val: sub, bold: true });
+
+      if (disc > 0 && subtotalTotal > 0) {
+        const dShare = disc * (sub / subtotalTotal);
+        lines.push({ label: "Diskon", val: -dShare });
+      }
+      if (svc > 0 && subtotalTotal > 0) {
+        const sShare = svcAmt * (sub / subtotalTotal);
+        lines.push({ label: "Service " + svc + "%", val: sShare });
+      }
+      if (tax > 0 && subtotalTotal > 0) {
+        const tShare = taxAmt * (sub / subtotalTotal);
+        lines.push({ label: "Pajak " + tax + "%", val: tShare });
+      }
+
+      lines.forEach(l => {
+        const row = document.createElement("div");
+        row.className = "breakdown-line";
+        const lbl = document.createElement("span");
+        lbl.textContent = l.label;
+        if (l.bold) lbl.style.fontWeight = "700";
+        const val = document.createElement("span");
+        val.className = "mono";
+        val.textContent = (l.val < 0 ? "−" + fmt(-l.val) : fmt(l.val));
+        if (l.bold) val.style.fontWeight = "700";
+        row.appendChild(lbl);
+        row.appendChild(val);
+        detail.appendChild(row);
+      });
+
+      // total baris
+      const totalRow = document.createElement("div");
+      totalRow.className = "breakdown-line";
+      totalRow.style.fontWeight = "800";
+      const tl = document.createElement("span");
+      tl.textContent = "Total";
+      const tv = document.createElement("span");
+      tv.className = "mono";
+      tv.textContent = fmt(shares[p]);
+      tv.style.color = "var(--accent)";
+      totalRow.appendChild(tl);
+      totalRow.appendChild(tv);
+      detail.appendChild(totalRow);
+
+      // toggle
+      hdr.addEventListener("click", () => toggleBreakdown(hdr, detail));
+      hdr.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleBreakdown(hdr, detail); }
+      });
+
+      item.appendChild(hdr);
+      item.appendChild(detail);
+      breakdownEl.appendChild(item);
+    });
+
+    // menu table
+    const tbody = document.querySelector("#s3-menu-table tbody");
+    tbody.textContent = "";
+    state.menus.forEach(m => {
+      const tr = document.createElement("tr");
+      const tdName = document.createElement("td");
+      tdName.className = "row-name";
+      tdName.textContent = m.name;
+      const tdWho = document.createElement("td");
+      tdWho.style.color = "var(--muted)";
+      tdWho.style.fontSize = ".78rem";
+      tdWho.textContent = m.who.join(", ");
+      const tdPrice = document.createElement("td");
+      tdPrice.className = "row-amount";
+      tdPrice.textContent = fmt(m.price);
+      tr.appendChild(tdName);
+      tr.appendChild(tdWho);
+      tr.appendChild(tdPrice);
+      tbody.appendChild(tr);
+    });
+
+    // verifikasi total (debug guard)
+    const sumShares = Object.values(shares).reduce((a,b)=>a+b, 0);
+    if (sumShares !== gtRounded) {
+      console.error("[calculate] MISMATCH: sum=" + sumShares + " total=" + gtRounded);
+    }
+  } catch(e) { console.error("[renderResult]", e); }
+}
+
+function toggleBreakdown(hdr, detail) {
+  const isOpen = detail.classList.contains("open");
+  detail.classList.toggle("open", !isOpen);
+  hdr.setAttribute("aria-expanded", String(!isOpen));
+}
+
+/* ============================================================
+   RINGKASAN TEKS (untuk clipboard / WhatsApp)
+   ============================================================ */
+function buildSummaryText() {
+  const svc  = state.service;
+  const tax  = state.tax;
+  const disc = state.disc;
+
+  // recalc (sama seperti calculate tapi return data)
+  const subtotals = {};
+  state.participants.forEach(p => { subtotals[p] = 0; });
+  state.menus.forEach(m => {
+    const share = m.price / m.who.length;
+    m.who.forEach(p => { subtotals[p] = (subtotals[p] || 0) + share; });
+  });
+  const subtotalTotal = Object.values(subtotals).reduce((a, b) => a + b, 0);
+  const afterDisc     = Math.max(subtotalTotal - disc, 0);
+  const svcAmt        = afterDisc * svc / 100;
+  const taxAmt        = (afterDisc + svcAmt) * tax / 100;
+  const grandTotal    = afterDisc + svcAmt + taxAmt;
+
+  const rawShares = {};
+  state.participants.forEach(p => {
+    let share = subtotals[p];
+    if (subtotalTotal > 0) {
+      const ratio = subtotals[p] / subtotalTotal;
+      share = subtotals[p] - (disc * ratio) + (svcAmt * ratio) + (taxAmt * ratio);
+    }
+    rawShares[p] = Math.max(share, 0);
+  });
+  const floors = {};
+  const remainders = [];
+  state.participants.forEach(p => {
+    floors[p] = Math.floor(rawShares[p]);
+    remainders.push({ p, r: rawShares[p] - floors[p] });
+  });
+  const floorSum = Object.values(floors).reduce((a, b) => a + b, 0);
+  let leftover   = Math.round(grandTotal) - floorSum;
+  remainders.sort((a, b) => b.r - a.r);
+  remainders.forEach(item => {
+    if (leftover > 0) { floors[item.p] += 1; leftover--; }
+  });
+
+  const lines = [];
+  lines.push("🧾 PATUNGAN ADIL");
+  lines.push("================================");
+  state.menus.forEach(m => {
+    lines.push(m.name + " — " + fmt(m.price) + " [" + m.who.join(", ") + "]");
+  });
+  lines.push("--------------------------------");
+  lines.push("Subtotal    : " + fmt(subtotalTotal));
+  if (disc > 0) lines.push("Diskon      : −" + fmt(disc));
+  if (svc  > 0) lines.push("Service " + svc + "%  : " + fmt(svcAmt));
+  if (tax  > 0) lines.push("Pajak " + tax + "%    : " + fmt(taxAmt));
+  lines.push("TOTAL       : " + fmt(Math.round(grandTotal)));
+  lines.push("================================");
+  state.participants.forEach(p => {
+    lines.push(p + " bayar : " + fmt(floors[p]));
+  });
+  lines.push("================================");
+  lines.push("Dibuat dgn Patungan Adil 🤝");
+  return lines.join("\n");
+}
+
+/* ============================================================
+   WHATSAPP — buka tab baru
+   ============================================================ */
+function sendWhatsApp() {
+  try {
+    const text = buildSummaryText();
+    const url  = "https://wa.me/?text=" + encodeURIComponent(text);
+    window.open(url, "_blank", "noopener,noreferrer");
+  } catch(e) { console.error("[sendWhatsApp]", e); }
+}
+
+/* ============================================================
+   CLIPBOARD
+   ============================================================ */
+function copySummary() {
+  try {
+    const text   = buildSummaryText();
+    const status = document.getElementById("s3-status");
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        status.textContent = CONFIG.ui.copiedOk;
+      }).catch(() => {
+        status.textContent = CONFIG.ui.copiedFail + "\n\n" + text;
+      });
+    } else {
+      // fallback
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity  = "0.01";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        status.textContent = CONFIG.ui.copiedOk;
+      } catch(_) {
+        status.textContent = CONFIG.ui.copiedFail;
+      }
+    }
+  } catch(e) { console.error("[copySummary]", e); }
+}
+
+/* ============================================================
+   RESET
+   ============================================================ */
+function restartApp() {
+  try {
+    state.participants = [];
+    state.menus        = [];
+    state.service      = CONFIG.defaults.service;
+    state.tax          = CONFIG.defaults.tax;
+    state.disc         = CONFIG.defaults.disc;
+    // reset modifier inputs
+    document.getElementById("s3-service").value = "";
+    document.getElementById("s3-tax").value     = "";
+    document.getElementById("s3-disc").value    = "";
+    goToScene(1);
+  } catch(e) { console.error("[restartApp]", e); }
+}
+
+/* ============================================================
+   LOAD DEMO DATA
+   ============================================================ */
+function loadDemo() {
+  state.participants = [...CONFIG.demo.participants];
+  state.menus        = CONFIG.demo.menus.map(m => ({ ...m, who: [...m.who] }));
+  state.service      = CONFIG.demo.service;
+  state.tax          = CONFIG.demo.tax;
+  state.disc         = CONFIG.demo.disc;
+}
+
+/* ============================================================
+   URL PARAMETER — ?demo=1, ?scene=1/2/3
+   ============================================================ */
+function handleUrlParams() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const demo   = params.get("demo");
+    const scene  = parseInt(params.get("scene"), 10);
+
+    if (demo === "1") {
+      loadDemo();
+      goToScene(1);
+      return;
+    }
+
+    if (scene >= 1 && scene <= 3) {
+      if (scene >= 2 && state.participants.length === 0) loadDemo();
+      if (scene >= 3 && state.menus.length === 0)        loadDemo();
+      goToScene(scene);
+    } else {
+      goToScene(1);
+    }
+  } catch(e) {
+    console.error("[handleUrlParams]", e);
+    goToScene(1);
+  }
+}
+
+/* ============================================================
+   EVENT LISTENERS
+   ============================================================ */
+
+// Scene 1
+document.getElementById("s1-add").addEventListener("click", addParticipant);
+document.getElementById("s1-name").addEventListener("keydown", e => {
+  if (e.key === "Enter") addParticipant();
+});
+document.getElementById("s1-next").addEventListener("click", () => {
+  const err = document.getElementById("s1-error");
+  if (state.participants.length < 2) {
+    err.textContent = CONFIG.ui.errorMinPeople;
+    return;
+  }
+  err.textContent = "";
+  goToScene(2);
+});
+
+// Scene 2
+document.getElementById("s2-add").addEventListener("click", addMenu);
+document.getElementById("s2-mname").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("s2-price").focus();
+});
+document.getElementById("s2-price").addEventListener("blur", function() { formatPriceInput(this); });
+document.getElementById("s2-price").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") addMenu();
+});
+document.getElementById("s2-all").addEventListener("click", () => {
+  document.querySelectorAll("#s2-who-group input[type=checkbox]")
+    .forEach(cb => { cb.checked = true; });
+});
+document.getElementById("s2-none").addEventListener("click", () => {
+  document.querySelectorAll("#s2-who-group input[type=checkbox]")
+    .forEach(cb => { cb.checked = false; });
+});
+document.getElementById("s2-next").addEventListener("click", () => {
+  const err = document.getElementById("s2-error");
+  if (state.menus.length === 0) {
+    err.textContent = CONFIG.ui.errorMinMenu;
+    return;
+  }
+  err.textContent = "";
+  goToScene(3);
+});
+document.getElementById("s2-back").addEventListener("click", () => goToScene(1));
+
+// Scene 3 — modifier inputs trigger recalculate
+["s3-service", "s3-tax", "s3-disc"].forEach(id => {
+  document.getElementById(id).addEventListener("input", calculate);
+});
+document.getElementById("s3-copy").addEventListener("click",    copySummary);
+document.getElementById("s3-wa").addEventListener("click",      sendWhatsApp);
+document.getElementById("s3-back").addEventListener("click",    () => goToScene(2));
+document.getElementById("s3-restart").addEventListener("click", restartApp);
+
+/* ============================================================
+   INIT
+   ============================================================ */
+handleUrlParams();
+</script>
+</body>
+</html>
